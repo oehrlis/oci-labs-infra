@@ -1,0 +1,32 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: .gitignore
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.11.26
+# Version....: v0.1.0
+# Purpose....: Ignore transient build, Terraform, and local config artifacts.
+# Notes......: Tailor paths per stack; keep secrets and locals out of VCS.
+# Reference..: https://github.com/oehrlis/oci-labs-infra
+# License....: Apache License Version 2.0
+# ------------------------------------------------------------------------------
+# Modified...:
+# 2025.11.26 oehrli - initial version
+# ------------------------------------------------------------------------------
+
+# Terraform caches and locks
+**/.terraform/
+**/.terraform.lock.hcl
+
+# Build output
+dist/
+
+# Archives
+*.zip
+*.tar.gz
+
+# Local overrides (keep out of repo)
+infra/stacks/lab-db19c-baseline/terraform.tfvars.local
+
+# --- EOF ----------------------------------------------------------------------
