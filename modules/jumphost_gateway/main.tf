@@ -1,0 +1,67 @@
+# ------------------------------------------------------------------------------
+# OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
+# ------------------------------------------------------------------------------
+# Name.......: main.tf
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
+# Editor.....: Stefan Oehrli
+# Date.......: 2025.11.26
+# Version....: v0.1.0
+# Purpose....: Provision a jumphost/gateway instance with cloud-init.
+# Notes......: Uses lab_name_core for naming and inherits freeform tags.
+# Reference..: https://github.com/oehrlis/oci-labs-infra
+# License....: Apache License Version 2.0
+# ------------------------------------------------------------------------------
+# Modified...:
+# 2025.11.26 oehrli - initial version
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Locals
+# ------------------------------------------------------------------------------
+
+locals {
+  # Display name for the jumphost instance
+  instance_display_name = "ci-${var.lab_name_core}-gw-01"
+
+  # Rendered cloud-init template
+  cloud_init = templatefile(
+    "${path.module}/templates/jumphost-cloudinit.yaml.tftpl",
+    {
+      ssh_authorized_keys = var.ssh_authorized_keys
+      ssh_port            = var.ssh_port
+      enable_wireguard    = var.enable_wireguard
+    }
+  )
+}
+
+resource "oci_core_instance" "jumphost" {
+  compartment_id      = var.compartment_ocid
+  availability_domain = var.availability_domain
+  display_name        = local.instance_display_name
+  shape               = var.shape
+
+  shape_config {
+    ocpus         = var.ocpus
+    memory_in_gbs = var.memory_gbs
+  }
+
+  create_vnic_details {
+    subnet_id        = var.subnet_id
+    assign_public_ip = var.assign_public_ip
+    hostname_label   = "gw01"
+  }
+
+  source_details {
+    source_type             = "image"
+    source_id               = var.instance_image_ocid
+    boot_volume_size_in_gbs = var.boot_volume_size_gbs
+  }
+
+  metadata = {
+    user_data = base64encode(local.cloud_init)
+  }
+
+  freeform_tags = var.freeform_tags
+}
+
+# --- EOF ----------------------------------------------------------------------
