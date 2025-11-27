@@ -359,38 +359,24 @@ resource "oci_logging_log" "vcn_flow" {
 # -----------------------------------------------------------------------------
 # Default Route Table "neutralisieren"
 # -----------------------------------------------------------------------------
-
+# Default Route Table der VCN verwalten
 resource "oci_core_default_route_table" "default_rt" {
   manage_default_resource_id = oci_core_vcn.this.default_route_table_id
 
-  display_name = "rtb-${var.lab_name_core}-default-unused"
-
-  # Ziel: keine Route-Regeln in der Default-RT.
-  # Je nach Provider-Version kann es sein, dass du hier eine
-  # leere Liste explizit setzen musst oder den Block komplett weglässt.
-  # Falls `route_rules = []` meckert, einfach den Block löschen und
-  # in der Doku kurz prüfen, wie der Provider leere Regeln erwartet.
-  route_rules = []
-
+  # keine route_rules-Blöcke definieren -> Terraform managed nur das Objekt,
+  # aber ändert die Routen nicht aktiv
   freeform_tags = var.freeform_tags
 }
+
 
 # -----------------------------------------------------------------------------
 # Default Security List leeren
 # -----------------------------------------------------------------------------
-
+# Default Security List der VCN verwalten
 resource "oci_core_default_security_list" "default_sl" {
   manage_default_resource_id = oci_core_vcn.this.default_security_list_id
 
-  display_name = "sl-${var.lab_name_core}-default-empty"
-
-  # Keine eingehenden Regeln
-  ingress_security_rules = []
-
-  # Keine ausgehenden Regeln
-  egress_security_rules = []
-
+  # keine ingress/egress-Blöcke definieren -> keine zusätzlichen Regeln
   freeform_tags = var.freeform_tags
 }
-
 # --- EOF ----------------------------------------------------------------------
