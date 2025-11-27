@@ -38,7 +38,7 @@ runcmd:
   # Clone or update the oci-labs-config repo
   - [ sh, -c, "mkdir -p /opt && if [ ! -d /opt/oci-labs-config ]; then git clone -b ${ansible_branch} ${ansible_repo_url} /opt/oci-labs-config; else cd /opt/oci-labs-config && git fetch --all && git checkout ${ansible_branch} && git pull --ff-only; fi" ]
 
-  # Run the jumphost playbook locally
+  # Run the jumphost playbook locally minor fixes only, log output
   - [ sh, -c, "cd /opt/oci-labs-config/ansible && \
     ANSIBLE_FORCE_COLOR=true \
     ANSIBLE_ROLES_PATH=/opt/oci-labs-config/ansible/roles \
