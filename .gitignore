@@ -32,3 +32,5 @@ infra/stacks/lab-db19c-baseline/terraform.tfvars.local
 # --- EOF ----------------------------------------------------------------------
 labs/odb19eng-single/terraform.tfstate
 labs/odb19eng-single/terraform.tfstate.backup
+labs/odb19eng-single/terraform.tfstate
+labs/odb19eng-single/terraform.tfstate.backup

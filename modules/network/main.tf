@@ -54,6 +54,7 @@ resource "oci_core_vcn" "this" {
   freeform_tags = var.freeform_tags
 }
 
+
 # -----------------------------------------------------------------------------
 # Internet Gateway
 # -----------------------------------------------------------------------------
@@ -161,27 +162,23 @@ resource "oci_core_security_list" "public" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.this.id
   display_name   = local.public_sl_name
+  freeform_tags  = var.freeform_tags
 
-  # SSH
-  dynamic "ingress_security_rules" {
-    for_each = var.allowed_ssh_cidrs
-    content {
-      protocol = "6" # TCP
-      source   = ingress_security_rules.value
-
-      tcp_options {
-        min = var.ssh_port
-        max = var.ssh_port
-      }
-    }
+  # Egress: weiterhin alles raus erlaubt
+  egress_security_rules {
+    protocol         = "all"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
   }
 
-  # WireGuard (UDP)
+  # WireGuard UDP – für jede erlaubte CIDR
   dynamic "ingress_security_rules" {
     for_each = var.allowed_wireguard_cidrs
     content {
-      protocol = "17" # UDP
-      source   = ingress_security_rules.value
+      protocol    = "17" # UDP
+      source      = ingress_security_rules.value
+      source_type = "CIDR_BLOCK"
+      stateless   = false
 
       udp_options {
         min = var.wireguard_port
@@ -190,27 +187,21 @@ resource "oci_core_security_list" "public" {
     }
   }
 
-  # Optional HTTP/HTTPS
+  # SSH TCP – für jede erlaubte CIDR
   dynamic "ingress_security_rules" {
-    for_each = var.allow_public_http_https ? [80, 443] : []
+    for_each = var.allowed_ssh_cidrs
     content {
-      protocol = "6" # TCP
-      source   = "0.0.0.0/0"
+      protocol    = "6" # TCP
+      source      = ingress_security_rules.value
+      source_type = "CIDR_BLOCK"
+      stateless   = false
 
       tcp_options {
-        min = ingress_security_rules.value
-        max = ingress_security_rules.value
+        min = var.ssh_port
+        max = var.ssh_port
       }
     }
   }
-
-  # Egress: allow all
-  egress_security_rules {
-    protocol    = "all"
-    destination = "0.0.0.0/0"
-  }
-
-  freeform_tags = var.freeform_tags
 }
 
 # Private, DB, App: allow all within VCN, egress all
@@ -327,7 +318,6 @@ resource "oci_core_subnet" "app" {
 # -----------------------------------------------------------------------------
 # Logging: Log Group + VCN Flow Logs
 # -----------------------------------------------------------------------------
-
 resource "oci_logging_log_group" "net" {
   compartment_id = var.compartment_ocid
   display_name   = local.log_group_name
@@ -335,21 +325,70 @@ resource "oci_logging_log_group" "net" {
   freeform_tags = var.freeform_tags
 }
 
+# Flow Logs pro Subnet (public / private / db / app)
+locals {
+  flow_log_targets = {
+    public  = oci_core_subnet.public.id
+    private = oci_core_subnet.private.id
+    db      = oci_core_subnet.db.id
+    app     = oci_core_subnet.app.id
+  }
+}
+
 resource "oci_logging_log" "vcn_flow" {
+  for_each = local.flow_log_targets
+
   log_group_id       = oci_logging_log_group.net.id
-  display_name       = local.flow_log_name
+  display_name       = "log-${var.lab_name_core}-${each.key}-flow-01"
   log_type           = "SERVICE"
   is_enabled         = true
   retention_duration = var.flow_log_retention_duration
 
   configuration {
     source {
-      category    = "all"                      # Flow Logs (all records)
-      resource    = oci_core_subnet.private.id # <<< WICHTIG: Subnet, nicht VCN
+      category    = "all"
+      resource    = each.value
       service     = "flowlogs"
       source_type = "OCISERVICE"
     }
   }
+
+  freeform_tags = var.freeform_tags
+}
+
+# -----------------------------------------------------------------------------
+# Default Route Table "neutralisieren"
+# -----------------------------------------------------------------------------
+
+resource "oci_core_default_route_table" "default_rt" {
+  manage_default_resource_id = oci_core_vcn.this.default_route_table_id
+
+  display_name = "rtb-${var.lab_name_core}-default-unused"
+
+  # Ziel: keine Route-Regeln in der Default-RT.
+  # Je nach Provider-Version kann es sein, dass du hier eine
+  # leere Liste explizit setzen musst oder den Block komplett weglässt.
+  # Falls `route_rules = []` meckert, einfach den Block löschen und
+  # in der Doku kurz prüfen, wie der Provider leere Regeln erwartet.
+  route_rules = []
+
+  freeform_tags = var.freeform_tags
+}
+
+# -----------------------------------------------------------------------------
+# Default Security List leeren
+# -----------------------------------------------------------------------------
+
+resource "oci_core_default_security_list" "default_sl" {
+  manage_default_resource_id = oci_core_vcn.this.default_security_list_id
+
+  display_name = "sl-${var.lab_name_core}-default-empty"
+
+  # Keine eingehenden Regeln
+  ingress_security_rules = []
+
+  # Keine ausgehenden Regeln
+  egress_security_rules = []
 
   freeform_tags = var.freeform_tags
 }

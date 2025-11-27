@@ -53,12 +53,11 @@ module "network" {
 
   enable_flow_logs            = var.enable_flow_logs
   flow_log_retention_duration = var.flow_log_retention_duration
-
-  allowed_ssh_cidrs       = var.allowed_ssh_cidrs
-  ssh_port                = var.ssh_port
-  allowed_wireguard_cidrs = var.allowed_wireguard_cidrs
-  wireguard_port          = var.wireguard_port
-  allow_public_http_https = false
+  allowed_ssh_cidrs           = var.allowed_ssh_cidrs
+  allowed_wireguard_cidrs     = var.allowed_wireguard_cidrs
+  ssh_port                    = var.ssh_port
+  wireguard_port              = var.wireguard_port
+  allow_public_http_https     = false
 }
 
 # ---------------------------------------------------------------------------

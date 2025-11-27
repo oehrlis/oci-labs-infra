@@ -46,6 +46,17 @@ variable "common_freeform_tags" {
 # -----------------------------------------------------------------------------
 # Network variables
 # -----------------------------------------------------------------------------
+variable "allowed_ssh_cidrs" {
+  description = "CIDR list allowed to reach the jumphost SSH port."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "allowed_wireguard_cidrs" {
+  description = "CIDR list allowed to reach the WireGuard UDP port."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
 
 variable "vcn_cidr" {
   type        = string
@@ -130,18 +141,6 @@ variable "flow_log_retention_duration" {
   type        = number
   description = "Log retention duration in days (in 30-day increments: 30, 60, 90, ...)."
   default     = 90
-}
-
-variable "allowed_ssh_cidrs" {
-  type        = list(string)
-  description = "CIDRs allowed to access SSH on the public subnet."
-  default     = ["0.0.0.0/0"]
-}
-
-variable "allowed_wireguard_cidrs" {
-  type        = list(string)
-  description = "CIDRs allowed to access WireGuard on the public subnet."
-  default     = ["0.0.0.0/0"]
 }
 
 variable "wireguard_port" {

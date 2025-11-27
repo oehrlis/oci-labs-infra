@@ -98,7 +98,7 @@ variable "allowed_ssh_cidrs" {
 variable "ssh_port" {
   type        = number
   description = "SSH port exposed on the jumphost via public subnet."
-  default     = 16022
+  default     = 22
 }
 
 variable "allowed_wireguard_cidrs" {
