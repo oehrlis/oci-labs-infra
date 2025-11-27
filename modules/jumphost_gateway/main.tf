@@ -57,8 +57,23 @@ resource "oci_core_instance" "jumphost" {
     boot_volume_size_in_gbs = var.boot_volume_size_gbs
   }
 
+  # ⇨ Hier: SSH-Key + Cloud-Init in die Instanz-Metadaten
   metadata = {
-    user_data = base64encode(local.cloud_init)
+    ssh_authorized_keys = var.ssh_authorized_keys
+    user_data           = base64encode(local.cloud_init)
+  }
+
+  instance_options {
+    # disable the legacy (/v1) instance metadata service endpoints 
+    are_legacy_imds_endpoints_disabled = true
+  }
+
+  # Whether to enable in-transit encryption for the data volume's paravirtualized attachment
+  is_pv_encryption_in_transit_enabled = true
+
+  # prevent the host from destroying and recreating itself if the image ocid changes 
+  lifecycle {
+    ignore_changes = [source_details[0].source_id]
   }
 
   freeform_tags = var.freeform_tags

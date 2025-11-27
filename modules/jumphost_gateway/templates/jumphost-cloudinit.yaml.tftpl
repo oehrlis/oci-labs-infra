@@ -1,21 +1,19 @@
+#cloud-config
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
 # Name.......: jumphost-cloudinit.yaml.tftpl
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
-# Editor.....: Stefan Oehrli
 # Date.......: 2025.11.26
-# Version....: v0.1.0
-# Purpose....: Cloud-init template for jumphost/gateway provisioning.
-# Notes......: Configures SSH hardening, firewall, fail2ban, and optional WireGuard prep.
-# Reference..: https://github.com/oehrlis/oci-labs-infra
-# License....: Apache License Version 2.0
-# ------------------------------------------------------------------------------
-# Modified...:
-# 2025.11.26 oehrli - initial version
+# Version....: v0.2.0
+# Purpose....: Minimal cloud-init for jumphost. Install Ansible and pull
+#              full config from oci-labs-config (GitOps).
 # ------------------------------------------------------------------------------
 
-#cloud-config
+# Log everything for Debug
+output: {all: '| tee -a /var/log/cloud-init-output.log'}
+
+# --- Users --------------------------------------------------------------------
 users:
   - default
   - name: opc
@@ -23,36 +21,28 @@ users:
     ssh-authorized-keys:
       - ${ssh_authorized_keys}
 
+# --- Packages -----------------------------------------------------------------
 package_update: true
 package_upgrade: true
 
 packages:
-  - firewalld
-  - fail2ban
-%{ if enable_wireguard }
-  - wireguard-tools
-%{ endif }
+  - git
+  - ansible-core
 
+# --- Run configuration commands -----------------------------------------------
 runcmd:
-  # Configure SSH port and basic hardening
-  - sed -i 's/^#Port 22/Port ${ssh_port}/' /etc/ssh/sshd_config
-  - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-  - systemctl restart sshd
+  # 1) Ansible-Working-Dir vorbereiten
+  - mkdir -p /opt/ansible
+  - chown opc:opc /opt/ansible
 
-  # Enable and start firewalld
-  - systemctl enable firewalld
-  - systemctl start firewalld
-  - firewall-cmd --permanent --add-port=${ssh_port}/tcp
-%{ if enable_wireguard }
-  - firewall-cmd --permanent --add-port=51820/udp
-%{ endif }
-  - firewall-cmd --reload
-
-  # Enable fail2ban
-  - systemctl enable fail2ban
-  - systemctl start fail2ban
-
-  # Placeholder for WireGuard setup - will be completed via Ansible later
-  - echo "WireGuard placeholder - configure via Ansible" > /root/wireguard.todo
+  # 2) Konfiguration via ansible-pull aus oci-labs-config holen
+  #    Variablen (Repo-URL, Branch, Playbook, SSH-Port etc.) kommen aus Terraform
+  - sudo -u opc ansible-pull \
+      -U ${ansible_repo_url} \
+      -C ${ansible_branch} \
+      -d /opt/ansible \
+      -i localhost, \
+      ${ansible_playbook} \
+      --extra-vars "ssh_port=${ssh_port} enable_wireguard=${enable_wireguard} lab_name=${lab_name_core}"
 
 # --- EOF ----------------------------------------------------------------------

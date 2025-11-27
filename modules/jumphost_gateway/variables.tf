@@ -77,7 +77,7 @@ variable "assign_public_ip" {
 # SSH keys for opc
 variable "ssh_authorized_keys" {
   type        = string
-  description = "SSH public key(s) for the opc user."
+  description = "SSH public key(s) for the jumphost (one or more, separated by newlines)"
 }
 
 # SSH port
@@ -85,6 +85,28 @@ variable "ssh_port" {
   type        = number
   description = "SSH port that the jumphost listens on."
   default     = 16022
+}
+
+# Ansible repository settings
+variable "ansible_repo_url" {
+  type        = string
+  description = "Git URL of oci-labs-config repository."
+  default     = "https://github.com/oehrlis/oci-labs-config.git"
+}
+
+variable "ansible_branch" {
+  type    = string
+  default = "main"
+}
+
+variable "ansible_playbook" {
+  type    = string
+  default = "playbooks/jumphost.yml"
+}
+
+variable "ssh_port" {
+  type    = number
+  default = 22
 }
 
 # WireGuard enablement
