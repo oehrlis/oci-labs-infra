@@ -19,16 +19,15 @@
 # Locals
 # ------------------------------------------------------------------------------
 
-# Lab instance as two-digit string, e.g. 01, 02, 03
 locals {
+  # Lab instance as two-digit string, e.g. 01, 02, 03
   lab_instance_padded = format("%02d", var.lab_instance)
 
   # Core name segment used inside all resource names:
   # {region}-{env}-{stack}-{instance}
   #
   # Example: chzh-l-odb19eng-01
-  lab_name_core =
-    "${var.region_key}-${var.environment_code}-${var.stack_code}-${local.lab_instance_padded}"
+  lab_name_core = "${var.region_key}-${var.environment_code}-${var.stack_code}-${local.lab_instance_padded}"
 
   # Base freeform tags for this lab / stack. Extend per resource if needed.
   base_freeform_tags = merge(
@@ -37,7 +36,7 @@ locals {
       stack   = var.stack_code
       env     = var.environment_code
       region  = var.region_key
-      lab_idx = local.lab_instance_padded
+      lab_idx = local.lab_instance_padded # <--- HIER war der Fehler
     }
   )
 }

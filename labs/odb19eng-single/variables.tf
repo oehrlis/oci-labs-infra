@@ -35,7 +35,7 @@ variable "lab_instance" {
 }
 
 variable "common_freeform_tags" {
-  type = map(string)
+  type        = map(string)
   description = "Base freeform tags applied to all resources of this stack."
   default = {
     project = "oradba-labs"
@@ -74,6 +74,10 @@ variable "enable_flow_logs" {
 # -----------------------------------------------------------------------------
 # Jumphost / Gateway variables
 # -----------------------------------------------------------------------------
+# variable "jumphost_image_ocid" {
+#   type        = string
+#   description = "Image OCID for the jumphost (Oracle Linux 8/9 in the chosen region)."
+# }
 
 variable "jumphost_shape" {
   type        = string
@@ -110,3 +114,50 @@ variable "enable_wireguard" {
   default     = true
 }
 
+variable "db_subnet_cidr" {
+  type        = string
+  description = "CIDR block for the DB subnet."
+  default     = "10.19.30.0/24"
+}
+
+variable "app_subnet_cidr" {
+  type        = string
+  description = "CIDR block for the App subnet."
+  default     = "10.19.40.0/24"
+}
+
+variable "flow_log_retention_duration" {
+  type        = number
+  description = "Log retention duration in days (in 30-day increments: 30, 60, 90, ...)."
+  default     = 90
+}
+
+variable "allowed_ssh_cidrs" {
+  type        = list(string)
+  description = "CIDRs allowed to access SSH on the public subnet."
+  default     = ["0.0.0.0/0"]
+}
+
+variable "allowed_wireguard_cidrs" {
+  type        = list(string)
+  description = "CIDRs allowed to access WireGuard on the public subnet."
+  default     = ["0.0.0.0/0"]
+}
+
+variable "wireguard_port" {
+  type        = number
+  description = "WireGuard UDP port exposed on the public subnet."
+  default     = 51820
+}
+
+variable "bastion_os" {
+  type        = string
+  description = "Operating system name used to lookup the jumphost image."
+  default     = "Oracle Linux"
+}
+
+variable "bastion_os_version" {
+  type        = string
+  description = "Operating system version used to lookup the jumphost image."
+  default     = "9"
+}

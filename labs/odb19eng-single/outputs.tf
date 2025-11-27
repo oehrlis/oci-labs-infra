@@ -27,4 +27,3 @@ output "jumphost_private_ip" {
   description = "Private IP address of the jumphost/gateway."
   value       = module.jumphost_gateway.private_ip
 }
-

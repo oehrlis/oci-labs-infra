@@ -63,7 +63,6 @@ resource "oci_core_internet_gateway" "igw" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.this.id
   display_name   = "igw-${var.lab_name_core}-01"
-  is_enabled     = true
 
   freeform_tags = var.freeform_tags
 }
@@ -274,52 +273,52 @@ resource "oci_core_security_list" "app" {
 # -----------------------------------------------------------------------------
 
 resource "oci_core_subnet" "public" {
-  compartment_id    = var.compartment_ocid
-  vcn_id            = oci_core_vcn.this.id
-  cidr_block        = var.public_subnet_cidr
-  display_name      = local.public_subnet_name
-  dns_label         = "pub"
-  route_table_id    = oci_core_route_table.public.id
-  security_list_ids = [oci_core_security_list.public.id]
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_vcn.this.id
+  cidr_block                 = var.public_subnet_cidr
+  display_name               = local.public_subnet_name
+  dns_label                  = "pub"
+  route_table_id             = oci_core_route_table.public.id
+  security_list_ids          = [oci_core_security_list.public.id]
   prohibit_public_ip_on_vnic = false
 
   freeform_tags = var.freeform_tags
 }
 
 resource "oci_core_subnet" "private" {
-  compartment_id    = var.compartment_ocid
-  vcn_id            = oci_core_vcn.this.id
-  cidr_block        = var.private_subnet_cidr
-  display_name      = local.private_subnet_name
-  dns_label         = "priv"
-  route_table_id    = oci_core_route_table.private.id
-  security_list_ids = [oci_core_security_list.private.id]
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_vcn.this.id
+  cidr_block                 = var.private_subnet_cidr
+  display_name               = local.private_subnet_name
+  dns_label                  = "priv"
+  route_table_id             = oci_core_route_table.private.id
+  security_list_ids          = [oci_core_security_list.private.id]
   prohibit_public_ip_on_vnic = true
 
   freeform_tags = var.freeform_tags
 }
 
 resource "oci_core_subnet" "db" {
-  compartment_id    = var.compartment_ocid
-  vcn_id            = oci_core_vcn.this.id
-  cidr_block        = var.db_subnet_cidr
-  display_name      = local.db_subnet_name
-  dns_label         = "db"
-  route_table_id    = oci_core_route_table.db.id
-  security_list_ids = [oci_core_security_list.db.id]
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_vcn.this.id
+  cidr_block                 = var.db_subnet_cidr
+  display_name               = local.db_subnet_name
+  dns_label                  = "db"
+  route_table_id             = oci_core_route_table.db.id
+  security_list_ids          = [oci_core_security_list.db.id]
   prohibit_public_ip_on_vnic = true
 
   freeform_tags = var.freeform_tags
 }
 
 resource "oci_core_subnet" "app" {
-  compartment_id    = var.compartment_ocid
-  vcn_id            = oci_core_vcn.this.id
-  cidr_block        = var.app_subnet_cidr
-  display_name      = local.app_subnet_name
-  dns_label         = "app"
-  route_table_id    = oci_core_route_table.app.id
-  security_list_ids = [oci_core_security_list.app.id]
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_vcn.this.id
+  cidr_block                 = var.app_subnet_cidr
+  display_name               = local.app_subnet_name
+  dns_label                  = "app"
+  route_table_id             = oci_core_route_table.app.id
+  security_list_ids          = [oci_core_security_list.app.id]
   prohibit_public_ip_on_vnic = true
 
   freeform_tags = var.freeform_tags
@@ -337,17 +336,16 @@ resource "oci_logging_log_group" "net" {
 }
 
 resource "oci_logging_log" "vcn_flow" {
-  compartment_id = var.compartment_ocid
-  log_group_id   = oci_logging_log_group.net.id
-  display_name   = local.flow_log_name
-  log_type       = "SERVICE"
-  is_enabled     = var.enable_flow_logs
+  log_group_id       = oci_logging_log_group.net.id
+  display_name       = local.flow_log_name
+  log_type           = "SERVICE"
+  is_enabled         = true
   retention_duration = var.flow_log_retention_duration
 
   configuration {
     source {
-      category    = "all"
-      resource    = oci_core_vcn.this.id
+      category    = "all"                      # Flow Logs (all records)
+      resource    = oci_core_subnet.private.id # <<< WICHTIG: Subnet, nicht VCN
       service     = "flowlogs"
       source_type = "OCISERVICE"
     }
