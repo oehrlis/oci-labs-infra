@@ -24,14 +24,15 @@ locals {
   instance_display_name = "ci-${var.lab_name_core}-gw-01"
 
   # Rendered cloud-init template
-  cloud_init = templatefile(
-    "${path.module}/templates/jumphost-cloudinit.yaml.tftpl",
-    {
-      ssh_authorized_keys = var.ssh_authorized_keys
-      ssh_port            = var.ssh_port
-      enable_wireguard    = var.enable_wireguard
-    }
-  )
+  cloud_init = templatefile("${path.module}/templates/jumphost-cloudinit.yaml.tftpl", {
+    ssh_authorized_keys = var.ssh_authorized_keys
+    ansible_repo_url    = var.ansible_repo_url
+    ansible_branch      = var.ansible_branch
+    ansible_playbook    = var.ansible_playbook
+    ssh_port            = var.ssh_port # Default 22, z.B. 16022 im Lab
+    enable_wireguard    = var.enable_wireguard
+    lab_name_core       = var.lab_name_core
+  })
 }
 
 resource "oci_core_instance" "jumphost" {

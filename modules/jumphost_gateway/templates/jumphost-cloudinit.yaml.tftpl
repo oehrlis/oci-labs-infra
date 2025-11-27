@@ -1,16 +1,18 @@
-#cloud-config
 # ------------------------------------------------------------------------------
 # OraDBA - Oracle Database Infrastructure and Security, 5630 Muri, Switzerland
 # ------------------------------------------------------------------------------
 # Name.......: jumphost-cloudinit.yaml.tftpl
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@oradba.ch
 # Date.......: 2025.11.26
-# Version....: v0.2.0
-# Purpose....: Minimal cloud-init for jumphost. Install Ansible and pull
-#              full config from oci-labs-config (GitOps).
+# Version....: v0.2.1
+# Purpose....: Minimal cloud-init for jumphost / gateway.
+#              Install Ansible and pull full config from oci-labs-config/ansible.
+# Notes......: SSH-Port wird NUR via Ansible gesetzt (ssh_port aus Terraform).
 # ------------------------------------------------------------------------------
 
-# Log everything for Debug
+#cloud-config
+
+# Log all cloud-init output for debugging
 output: {all: '| tee -a /var/log/cloud-init-output.log'}
 
 # --- Users --------------------------------------------------------------------
@@ -35,14 +37,20 @@ runcmd:
   - mkdir -p /opt/ansible
   - chown opc:opc /opt/ansible
 
-  # 2) Konfiguration via ansible-pull aus oci-labs-config holen
-  #    Variablen (Repo-URL, Branch, Playbook, SSH-Port etc.) kommen aus Terraform
+  # 2) Konfiguration via ansible-pull aus oci-labs-config/ansible holen
+  #    Erwartete Variablen aus Terraform:
+  #      - ${ansible_repo_url}   (z.B. https://github.com/oehrlis/oci-labs-config.git)
+  #      - ${ansible_branch}     (z.B. main)
+  #      - ${ansible_playbook}   (z.B. lab-jumphost.yml)
+  #      - ${ssh_port}           (Default 22, Lab z.B. 16022)
+  #      - ${enable_wireguard}   (true/false)
+  #      - ${lab_name_core}      (chzh-l-odb19eng-01 ...)
   - sudo -u opc ansible-pull \
       -U ${ansible_repo_url} \
       -C ${ansible_branch} \
       -d /opt/ansible \
       -i localhost, \
-      ${ansible_playbook} \
+      ansible/playbooks/${ansible_playbook} \
       --extra-vars "ssh_port=${ssh_port} enable_wireguard=${enable_wireguard} lab_name=${lab_name_core}"
 
 # --- EOF ----------------------------------------------------------------------

@@ -89,9 +89,8 @@ variable "ssh_port" {
 
 # Ansible repository settings
 variable "ansible_repo_url" {
-  type        = string
-  description = "Git URL of oci-labs-config repository."
-  default     = "https://github.com/oehrlis/oci-labs-config.git"
+  type    = string
+  default = "https://github.com/oehrlis/oci-labs-config.git"
 }
 
 variable "ansible_branch" {
@@ -101,12 +100,7 @@ variable "ansible_branch" {
 
 variable "ansible_playbook" {
   type    = string
-  default = "playbooks/jumphost.yml"
-}
-
-variable "ssh_port" {
-  type    = number
-  default = 22
+  default = "lab-jumphost.yml"
 }
 
 # WireGuard enablement

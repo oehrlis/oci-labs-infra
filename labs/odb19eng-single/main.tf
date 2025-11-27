@@ -99,7 +99,7 @@ module "jumphost_gateway" {
 
   ansible_repo_url = "https://github.com/oehrlis/oci-labs-config.git"
   ansible_branch   = "main"
-  ansible_playbook = "playbooks/jumphost_gateway.yml"
+  ansible_playbook = "lab-jumphost.yml"
 
   enable_wireguard = var.enable_wireguard
 
